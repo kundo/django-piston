@@ -1,7 +1,8 @@
 from __future__ import generators
 
-import decimal, re, inspect
-import copy
+import decimal
+import re
+import inspect
 
 try:
     # yaml isn't standard with python.  It shouldn't be required if it
@@ -24,7 +25,7 @@ from django.db.models.query import QuerySet
 from django.db.models import Model, permalink
 from django.utils.xmlutils import SimplerXMLGenerator
 from django.utils.encoding import smart_unicode
-from django.core.urlresolvers import reverse, NoReverseMatch
+from django.core.urlresolvers import NoReverseMatch
 from django.core.serializers.json import DateTimeAwareJSONEncoder
 from django.http import HttpResponse
 from django.core import serializers
@@ -67,10 +68,12 @@ class Emitter(object):
     method detection came, and we accidentially caught these
     as the methods on the handler. Issue58 says that's no good.
     """
-    EMITTERS = { }
-    RESERVED_FIELDS = set([ 'read', 'update', 'create',
-                            'delete', 'model', 'anonymous',
-                            'allowed_methods', 'fields', 'exclude' ])
+    EMITTERS = {}
+    RESERVED_FIELDS = set([
+        'read', 'update', 'create', 'delete',
+        'model', 'anonymous', 'allowed_methods',
+        'fields', 'exclude',
+    ])
 
     def __init__(self, payload, typemapper, handler, fields=(), anonymous=True):
         self.typemapper = typemapper
@@ -84,7 +87,7 @@ class Emitter(object):
 
     def method_fields(self, handler, fields):
         if not handler:
-            return { }
+            return {}
 
         ret = dict()
 
@@ -111,12 +114,11 @@ class Emitter(object):
             ret = None
 
             # return anything we've already seen as a string only
-            # this prevents infinite recursion in the case of recursive 
+            # this prevents infinite recursion in the case of recursive
             # relationships
 
             if thing in self.stack:
-                raise RuntimeError, (u'Circular reference detected while emitting '
-                                     'response')
+                raise RuntimeError(u'Circular reference detected while emitting response')
 
             self.stack.append(thing)
 
@@ -158,20 +160,20 @@ class Emitter(object):
             """
             Foreign keys.
             """
-            return [ _model(m, fields) for m in data.iterator() ]
+            return [_model(m, fields) for m in data.iterator()]
 
         def _m2m(data, field, fields=None):
             """
             Many to many (re-route to `_model`.)
             """
-            return [ _model(m, fields) for m in getattr(data, field.name).iterator() ]
+            return [_model(m, fields) for m in getattr(data, field.name).iterator()]
 
         def _model(data, fields=None):
             """
             Models. Will respect the `fields` and/or
             `exclude` on the handler (see `typemapper`.)
             """
-            ret = { }
+            ret = {}
             handler = self.in_typemapper(type(data), self.anonymous)
             get_absolute_uri = False
 
@@ -185,8 +187,8 @@ class Emitter(object):
                 # the nested models won't appear properly
                 # Refs #157
                 if handler:
-                    fields = getattr(handler, 'fields')    
-                
+                    fields = getattr(handler, 'fields')
+
                 if not fields or hasattr(handler, 'fields'):
                     """
                     Fields was not specified, try to find teh correct
@@ -200,9 +202,11 @@ class Emitter(object):
                         get_absolute_uri = True
 
                     if not get_fields:
-                        get_fields = set([ f.attname.replace("_id", "", 1)
-                            for f in data._meta.fields + data._meta.virtual_fields])
-                    
+                        get_fields = set([
+                            f.attname.replace("_id", "", 1)
+                            for f in data._meta.fields + data._meta.virtual_fields
+                        ])
+
                     if hasattr(mapped, 'extra_fields'):
                         get_fields.update(mapped.extra_fields)
 
@@ -222,7 +226,7 @@ class Emitter(object):
                 met_fields = self.method_fields(handler, get_fields)
 
                 for f in data._meta.local_fields + data._meta.virtual_fields:
-                    if f.serialize and not any([ p in met_fields for p in [ f.attname, f.name ]]):
+                    if f.serialize and not any([p in met_fields for p in [f.attname, f.name]]):
                         if not f.rel:
                             if f.attname in get_fields:
                                 ret[f.attname] = _any(v(f))
@@ -290,18 +294,22 @@ class Emitter(object):
                     url_id, fields = handler.resource_uri(data)
 
                     try:
-                        ret['resource_uri'] = reverser( lambda: (url_id, fields) )()
-                    except NoReverseMatch, e:
+                        ret['resource_uri'] = reverser(lambda: (url_id, fields))()
+                    except NoReverseMatch:
                         pass
 
             if hasattr(data, 'get_api_url') and 'resource_uri' not in ret:
-                try: ret['resource_uri'] = data.get_api_url()
-                except: pass
+                try:
+                    ret['resource_uri'] = data.get_api_url()
+                except:
+                    pass
 
             # absolute uri
             if hasattr(data, 'get_absolute_url') and get_absolute_uri:
-                try: ret['absolute_uri'] = data.get_absolute_url()
-                except: pass
+                try:
+                    ret['absolute_uri'] = data.get_absolute_url()
+                except:
+                    pass
 
             return ret
 
@@ -309,22 +317,22 @@ class Emitter(object):
             """
             Querysets.
             """
-            return [ _any(v, fields) for v in data ]
+            return [_any(v, fields) for v in data]
 
         def _list(data, fields=None):
             """
             Lists.
             """
-            return [ _any(v, fields) for v in data ]
+            return [_any(v, fields) for v in data]
 
         def _dict(data, fields=None):
             """
             Dictionaries.
             """
-            return dict([ (k, _any(v, fields)) for k, v in data.iteritems() ])
+            return dict([(k, _any(v, fields)) for k, v in data.iteritems()])
 
         # Kickstart the seralizin'.
-        self.stack = [];
+        self.stack = []
         return _any(self.data, self.fields)
 
     def in_typemapper(self, model, anonymous):
@@ -353,7 +361,7 @@ class Emitter(object):
         """
         Gets an emitter, returns the class and a content-type.
         """
-        if cls.EMITTERS.has_key(format):
+        if format in cls.EMITTERS:
             return cls.EMITTERS.get(format)
 
         raise ValueError("No emitters found for type %s" % format)
