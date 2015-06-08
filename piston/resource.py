@@ -241,13 +241,13 @@ class Resource(object):
 
     @staticmethod
     def _use_emitter(result):
-        """True iff result is a HttpResponse and contains non-string content."""
         if not isinstance(result, HttpResponse):
             return False
-        elif django.VERSION >= (1, 4):
-            return hasattr(result, "__iter__") or (hasattr(result, "_base_content_is_iter") and result._base_content_is_iter)
-        else:
-            return not result._is_string
+
+        if hasattr(result, "content") and isinstance(result.content, basestring):
+            return False
+
+        return True
 
     @staticmethod
     def cleanup_request(request):
