@@ -245,7 +245,7 @@ class Resource(object):
         if not isinstance(result, HttpResponse):
             return False
         elif django.VERSION >= (1, 4):
-            return result._base_content_is_iter
+            return hasattr(result, "__iter__") or (hasattr(result, "_base_content_is_iter") and result._base_content_is_iter)
         else:
             return not result._is_string
 
