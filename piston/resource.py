@@ -278,7 +278,7 @@ class Resource(object):
         message = EmailMessage(
             subject=settings.EMAIL_SUBJECT_PREFIX + subject,
             body=html,
-            from_address=settings.SERVER_EMAIL,
+            from_email=settings.SERVER_EMAIL,
             to=[admin[1] for admin in settings.ADMINS]
         )
 
