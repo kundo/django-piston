@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import binascii
 
 import oauth
@@ -206,7 +208,7 @@ def oauth_user_auth(request):
                 args = '?'+token.to_string(only_key=True)
             else:
                 args = '?error=%s' % 'Access not granted by user.'
-                print "FORM ERROR", form.errors
+                print("FORM ERROR", form.errors)
             
             if not callback:
                 callback = getattr(settings, 'OAUTH_CALLBACK_VIEW')
@@ -255,7 +257,7 @@ class OAuthAuthentication(object):
             try:
                 consumer, token, parameters = self.validate_token(request)
             except oauth.OAuthError as err:
-                print send_oauth_error(err)
+                print(send_oauth_error(err))
                 return False
 
             if consumer and token:

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
@@ -11,7 +13,7 @@ from piston.forms import OAuthAuthenticationForm
 try:
     import yaml
 except ImportError:
-    print "Can't run YAML testsuite"
+    print("Can't run YAML testsuite")
     yaml = None
 
 import urllib, base64, tempfile
