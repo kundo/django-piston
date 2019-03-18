@@ -1,14 +1,11 @@
 # Django imports
-import django.test.client as client
+import cgi
+
 import django.test as test
+import django.test.client as client
 from django.utils.http import urlencode
 
-# Piston imports
-from piston import oauth
-from piston.models import Consumer, Token
-
-# 3rd/Python party imports
-import httplib2, urllib, cgi
+from . import oauth
 
 URLENCODED_FORM_CONTENT = 'application/x-www-form-urlencoded'
 
@@ -32,8 +29,8 @@ class OAuthClient(client.Client):
         url = "http://testserver" + request['PATH_INFO']
 
         req = oauth.OAuthRequest.from_consumer_and_token(
-            self.consumer, token=self.token, 
-            http_method=request['REQUEST_METHOD'], http_url=url, 
+            self.consumer, token=self.token,
+            http_method=request['REQUEST_METHOD'], http_url=url,
             parameters=params
         )
 
@@ -49,7 +46,7 @@ class OAuthClient(client.Client):
 
         if isinstance(data, dict):
             data = urlencode(data)
-        
+
         return super(OAuthClient, self).post(path, data, content_type, follow, **extra)
 
 class TestCase(test.TestCase):
@@ -59,4 +56,3 @@ class OAuthTestCase(TestCase):
     @property
     def oauth(self):
         return OAuthClient(self.consumer, self.token)
-

@@ -1,6 +1,8 @@
-from piston.doc import generate_doc
-from piston.handler import handler_tracker
 import re
+
+from .doc import generate_doc
+from .handler import handler_tracker
+
 
 def generate_piston_documentation(app, docname, source):
     e = re.compile(r"^\.\. piston_handlers:: ([\w\.]+)$")

@@ -22,14 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-import cgi
-import urllib
-import time
-import random
-import urlparse
-import hmac
 import binascii
+import cgi
+import hmac
+import random
+import time
+import urllib
 
+from six.moves.urllib.parse import urlparse, urlunparse
 
 VERSION = '1.0' # Hi Blaine!
 HTTP_METHOD = 'GET'
@@ -115,13 +115,13 @@ class OAuthToken(object):
     def get_callback_url(self):
         if self.callback and self.verifier:
             # Append the oauth_verifier.
-            parts = urlparse.urlparse(self.callback)
+            parts = urlparse(self.callback)
             scheme, netloc, path, params, query, fragment = parts[:6]
             if query:
                 query = '%s&oauth_verifier=%s' % (query, self.verifier)
             else:
                 query = 'oauth_verifier=%s' % self.verifier
-            return urlparse.urlunparse((scheme, netloc, path, params,
+            return urlunparse((scheme, netloc, path, params,
                 query, fragment))
         return self.callback
 
@@ -240,7 +240,7 @@ class OAuthRequest(object):
 
     def get_normalized_http_url(self):
         """Parses the URL and rebuilds it to be scheme://host/path."""
-        parts = urlparse.urlparse(self.http_url)
+        parts = urlparse(self.http_url)
         scheme, netloc, path = parts[:3]
         # Exclude default port numbers.
         if scheme == 'http' and netloc[-3:] == ':80':
@@ -288,7 +288,7 @@ class OAuthRequest(object):
             parameters.update(query_params)
 
         # URL parameters.
-        param_str = urlparse.urlparse(http_url)[4] # query
+        param_str = urlparse(http_url)[4] # query
         url_params = OAuthRequest._split_url_string(param_str)
         parameters.update(url_params)
 

@@ -1,15 +1,17 @@
-import urllib, time, urlparse
+from __future__ import absolute_import
+
+import time
 
 # Django imports
 from django.conf import settings
-from django.db.models.signals import post_save, post_delete
-from django.db import models
 from django.contrib.auth.models import User
-from django.core.mail import send_mail, mail_admins
+from django.db import models
+from django.db.models.signals import post_delete, post_save
+from django.utils.http import urlencode
+from six.moves.urllib.parse import urlparse, urlunparse
 
-# Piston imports
-from managers import TokenManager, ConsumerManager, ResourceManager
-from signals import consumer_post_save, consumer_post_delete
+from .managers import ConsumerManager, TokenManager
+from .signals import consumer_post_delete, consumer_post_save
 
 KEY_SIZE = 18
 SECRET_SIZE = 32
@@ -47,7 +49,8 @@ class Consumer(models.Model):
 
     status = models.CharField(max_length=16, choices=CONSUMER_STATES, default='pending')
     user = models.ForeignKey(AUTH_USER_MODEL,
-                             null=True, blank=True, related_name='consumers')
+                             null=True, blank=True, related_name='consumers',
+                             on_delete=models.CASCADE)
 
     objects = ConsumerManager()
 
@@ -85,12 +88,13 @@ class Token(models.Model):
     secret = models.CharField(max_length=SECRET_SIZE)
     verifier = models.CharField(max_length=VERIFIER_SIZE)
     token_type = models.IntegerField(choices=TOKEN_TYPES)
-    timestamp = models.IntegerField(default=long(time.time()))
+    timestamp = models.IntegerField(default=int(time.time()))
     is_approved = models.BooleanField(default=False)
 
-    user = models.ForeignKey(AUTH_USER_MODEL,
-                             null=True, blank=True, related_name='tokens')
-    consumer = models.ForeignKey(Consumer)
+    user = models.ForeignKey(AUTH_USER_MODEL, null=True, blank=True,
+                             related_name='tokens',
+                             on_delete=models.CASCADE)
+    consumer = models.ForeignKey(Consumer, on_delete=models.CASCADE)
 
     callback = models.CharField(max_length=255, null=True, blank=True)
     callback_confirmed = models.BooleanField(default=False)
@@ -113,7 +117,7 @@ class Token(models.Model):
         if only_key:
             del token_dict['oauth_token_secret']
 
-        return urllib.urlencode(token_dict)
+        return urlencode(token_dict)
 
     def generate_random_codes(self):
         key = User.objects.make_random_password(length=KEY_SIZE)
@@ -131,13 +135,13 @@ class Token(models.Model):
     def get_callback_url(self):
         if self.callback and self.verifier:
             # Append the oauth_verifier.
-            parts = urlparse.urlparse(self.callback)
+            parts = urlparse(self.callback)
             scheme, netloc, path, params, query, fragment = parts[:6]
             if query:
                 query = '%s&oauth_verifier=%s' % (query, self.verifier)
             else:
                 query = 'oauth_verifier=%s' % self.verifier
-            return urlparse.urlunparse((scheme, netloc, path, params,
+            return urlunparse((scheme, netloc, path, params,
                 query, fragment))
         return self.callback
 

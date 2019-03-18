@@ -1,20 +1,19 @@
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 import binascii
 
-import oauth
-from django.http import HttpResponse, HttpResponseRedirect
-from django.contrib.auth.models import User, AnonymousUser
-from django.contrib.auth.decorators import login_required
-from django.template import loader
-from django.contrib.auth import authenticate
 from django.conf import settings
-from django.core.urlresolvers import get_callable
+from django.contrib.auth import authenticate
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import AnonymousUser, User
 from django.core.exceptions import ImproperlyConfigured
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.template import RequestContext, loader
+from django.urls import get_callable
 
-from piston import forms
+from . import forms, oauth
+
 
 class NoAuthentication(object):
     """
@@ -147,7 +146,7 @@ def send_oauth_error(err=None):
     realm = 'OAuth'
     header = oauth.build_authenticate_header(realm=realm)
 
-    for k, v in header.iteritems():
+    for k, v in header.items():
         response[k] = v
 
     return response

@@ -1,11 +1,11 @@
-import inspect, handler
+import inspect
 
-from piston.handler import typemapper
-from piston.handler import handler_tracker
-
-from django.core.urlresolvers import get_resolver, get_callable, get_script_prefix
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.urls import get_callable, get_resolver, get_script_prefix
+
+from .handler import HandlerMetaClass, handler_tracker
+
 
 def generate_doc(handler_cls):
     """
@@ -13,7 +13,7 @@ def generate_doc(handler_cls):
     for the given handler. Use this to generate
     documentation for your API.
     """
-    if isinstance(type(handler_cls), handler.HandlerMetaClass):
+    if isinstance(type(handler_cls), HandlerMetaClass):
         raise ValueError("Give me handler, not %s" % type(handler_cls))
 
     return HandlerDocumentation(handler_cls)
@@ -89,7 +89,7 @@ class HandlerDocumentation(object):
             if not met:
                 continue
 
-            stale = inspect.getmodule(met.im_func) is not inspect.getmodule(self.handler)
+            stale = inspect.getmodule(met.__func__) is not inspect.getmodule(self.handler)
 
             if not self.handler.is_anonymous:
                 if met and (not stale or include_default):

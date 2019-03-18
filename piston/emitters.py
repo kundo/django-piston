@@ -1,8 +1,24 @@
-from __future__ import generators
+from __future__ import absolute_import, generators
 
 import decimal
-import re
 import inspect
+import json
+import pickle
+import re
+
+import six
+from django.core import serializers
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Model
+from django.db.models.query import QuerySet
+from django.http import HttpResponse
+from django.urls import NoReverseMatch, reverse
+from django.utils.encoding import force_text
+from django.utils.six import StringIO
+from django.utils.xmlutils import SimplerXMLGenerator
+
+from .utils import HttpStatusCode, Mimer
+from .validate_jsonp import is_valid_jsonp_callback_value
 
 try:
     # yaml isn't standard with python.  It shouldn't be required if it
@@ -11,50 +27,6 @@ try:
 except ImportError:
     yaml = None
 
-# Fallback since `any` isn't in Python <2.5
-try:
-    any
-except NameError:
-    def any(iterable):
-        for element in iterable:
-            if element:
-                return True
-        return False
-
-from django.db.models.query import QuerySet
-from django.db.models import Model, permalink
-from django.utils.xmlutils import SimplerXMLGenerator
-from django.utils.encoding import smart_unicode
-from django.core.urlresolvers import NoReverseMatch
-from django.core.serializers.json import DjangoJSONEncoder
-from django.http import HttpResponse
-from django.core import serializers
-
-import django
-if django.VERSION >= (1, 5):
-    # In 1.5 and later, DjangoJSONEncoder inherits from json.JSONEncoder,
-    # while in 1.4 and earlier it inherits from simplejson.JSONEncoder.  The two
-    # are not compatible due to keyword argument namedtuple_as_object, and we
-    # have to ensure that the 'dumps' function we use is the right one.
-    import json
-else:
-    from django.utils import simplejson as json
-
-from utils import HttpStatusCode, Mimer
-from validate_jsonp import is_valid_jsonp_callback_value
-
-try:
-    import cStringIO as StringIO
-except ImportError:
-    import StringIO
-
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
-
-# Allow people to change the reverser (default `permalink`).
-reverser = permalink
 
 class Emitter(object):
     """
@@ -144,7 +116,7 @@ class Emitter(object):
             elif repr(thing).startswith("<django.db.models.fields.related.RelatedManager"):
                 ret = _any(thing.all())
             else:
-                ret = smart_unicode(thing, strings_only=True)
+                ret = force_text(thing, strings_only=True)
 
             self.stack.pop()
 
@@ -212,7 +184,7 @@ class Emitter(object):
 
                     # sets can be negated.
                     for exclude in exclude_fields:
-                        if isinstance(exclude, basestring):
+                        if isinstance(exclude, six.text_types):
                             get_fields.discard(exclude)
 
                         elif isinstance(exclude, re._pattern_type):
@@ -294,7 +266,7 @@ class Emitter(object):
                     url_id, fields = handler.resource_uri(data)
 
                     try:
-                        ret['resource_uri'] = reverser(lambda: (url_id, fields))()
+                        ret['resource_uri'] = reverse(url_id, args=fields)
                     except NoReverseMatch:
                         pass
 
@@ -399,7 +371,7 @@ class XMLEmitter(Emitter):
                 self._to_xml(xml, value)
                 xml.endElement(key)
         else:
-            xml.characters(smart_unicode(data))
+            xml.characters(force_text(data))
 
     def render(self, request):
         stream = StringIO.StringIO()

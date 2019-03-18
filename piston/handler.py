@@ -1,8 +1,11 @@
+from __future__ import absolute_import
+
 import warnings
 
-from utils import rc
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.conf import settings
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+
+from .utils import rc
 
 typemapper = { }
 handler_tracker = [ ]

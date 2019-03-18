@@ -1,18 +1,19 @@
-# Django imports
+from __future__ import absolute_import
+
 import django
-from django.core import mail
-from django.contrib.auth.models import User
 from django.conf import settings
-from django.template import loader, TemplateDoesNotExist
+from django.contrib.auth.models import User
+from django.core import mail
 from django.http import HttpRequest, HttpResponse
+from django.template import TemplateDoesNotExist, loader
 from django.utils import simplejson
 
-# Piston imports
-from test import TestCase
-from models import Consumer
-from handler import BaseHandler
-from utils import rc
-from resource import Resource
+from .handler import BaseHandler
+from .models import Consumer
+from .resource import Resource
+from .test import TestCase
+from .utils import rc
+
 
 class ConsumerTest(TestCase):
     fixtures = ['models.json']

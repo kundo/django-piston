@@ -1,7 +1,8 @@
-import oauth
+from __future__ import absolute_import
 
-from models import Nonce, Token, Consumer
-from models import generate_random, VERIFIER_SIZE
+from . import oauth
+from .models import VERIFIER_SIZE, Consumer, Nonce, Token, generate_random
+
 
 class DataStore(oauth.OAuthDataStore):
     """Layer between Python OAuth and Django database."""
