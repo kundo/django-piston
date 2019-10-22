@@ -1,0 +1,4 @@
+*.pyc
+.python-version
+.tox/
+django_piston.egg-info/

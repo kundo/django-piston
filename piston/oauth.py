@@ -22,14 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-import cgi
-import urllib
-import time
-import random
-import urlparse
-import hmac
 import binascii
+import cgi
+import hmac
+import random
+import time
+import urllib
 
+from six.moves.urllib.parse import urlparse, urlunparse
 
 VERSION = '1.0' # Hi Blaine!
 HTTP_METHOD = 'GET'
@@ -87,7 +87,7 @@ class OAuthConsumer(object):
 class OAuthToken(object):
     """OAuthToken is a data type that represents an End User via either an access
     or request token.
-    
+
     key -- the token
     secret -- the token secret
 
@@ -115,13 +115,13 @@ class OAuthToken(object):
     def get_callback_url(self):
         if self.callback and self.verifier:
             # Append the oauth_verifier.
-            parts = urlparse.urlparse(self.callback)
+            parts = urlparse(self.callback)
             scheme, netloc, path, params, query, fragment = parts[:6]
             if query:
                 query = '%s&oauth_verifier=%s' % (query, self.verifier)
             else:
                 query = 'oauth_verifier=%s' % self.verifier
-            return urlparse.urlunparse((scheme, netloc, path, params,
+            return urlunparse((scheme, netloc, path, params,
                 query, fragment))
         return self.callback
 
@@ -133,7 +133,7 @@ class OAuthToken(object):
         if self.callback_confirmed is not None:
             data['oauth_callback_confirmed'] = self.callback_confirmed
         return urllib.urlencode(data)
- 
+
     def from_string(s):
         """ Returns a token from something like:
         oauth_token_secret=xxx&oauth_token=xxx
@@ -157,11 +157,11 @@ class OAuthRequest(object):
     """OAuthRequest represents the request and can be serialized.
 
     OAuth parameters:
-        - oauth_consumer_key 
+        - oauth_consumer_key
         - oauth_token
         - oauth_signature_method
-        - oauth_signature 
-        - oauth_timestamp 
+        - oauth_signature
+        - oauth_timestamp
         - oauth_nonce
         - oauth_version
         - oauth_verifier
@@ -240,7 +240,7 @@ class OAuthRequest(object):
 
     def get_normalized_http_url(self):
         """Parses the URL and rebuilds it to be scheme://host/path."""
-        parts = urlparse.urlparse(self.http_url)
+        parts = urlparse(self.http_url)
         scheme, netloc, path = parts[:3]
         # Exclude default port numbers.
         if scheme == 'http' and netloc[-3:] == ':80':
@@ -288,7 +288,7 @@ class OAuthRequest(object):
             parameters.update(query_params)
 
         # URL parameters.
-        param_str = urlparse.urlparse(http_url)[4] # query
+        param_str = urlparse(http_url)[4] # query
         url_params = OAuthRequest._split_url_string(param_str)
         parameters.update(url_params)
 
@@ -436,7 +436,7 @@ class OAuthServer(object):
     def get_callback(self, oauth_request):
         """Get the callback URL."""
         return oauth_request.get_parameter('oauth_callback')
- 
+
     def build_authenticate_header(self, realm=''):
         """Optional support for the authenticate header."""
         return {'WWW-Authenticate': 'OAuth realm="%s"' % realm}
@@ -482,7 +482,7 @@ class OAuthServer(object):
         if not token:
             raise OAuthError('Invalid %s token: %s' % (token_type, token_field))
         return token
-    
+
     def _get_verifier(self, oauth_request):
         return oauth_request.get_parameter('oauth_verifier')
 
@@ -601,7 +601,7 @@ class OAuthSignatureMethod_HMAC_SHA1(OAuthSignatureMethod):
 
     def get_name(self):
         return 'HMAC-SHA1'
-        
+
     def build_signature_base_string(self, oauth_request, consumer, token):
         sig = (
             escape(oauth_request.get_normalized_http_method()),

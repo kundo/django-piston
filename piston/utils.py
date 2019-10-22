@@ -1,17 +1,20 @@
+from __future__ import absolute_import, print_function
+
 import time
 
 import django
-from django.http import HttpResponse
-from django.core.cache import cache
 from django import get_version as django_version
-from django.core.mail import send_mail, mail_admins
 from django.conf import settings
-from django.utils.translation import ugettext as _
-from django.template import loader, TemplateDoesNotExist
 from django.contrib.sites.models import Site
-from decorator import decorator
+from django.core.cache import cache
+from django.core.mail import mail_admins, send_mail
+from django.http import HttpResponse
+from django.template import TemplateDoesNotExist, loader
+from django.utils.translation import ugettext as _
 
-__version__ = '0.2.3rc1'
+from .decorator import decorator
+
+__version__ = '0.3.0'
 
 def get_version():
     return __version__
@@ -361,6 +364,6 @@ def send_consumer_mail(consumer):
         mail_admins(_(subject), body, fail_silently=True)
 
     if settings.DEBUG and consumer.user:
-        print "Mail being sent, to=%s" % consumer.user.email
-        print "Subject: %s" % _(subject)
-        print body
+        print("Mail being sent, to=%s" % consumer.user.email)
+        print("Subject: %s" % _(subject))
+        print(body)

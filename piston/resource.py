@@ -1,24 +1,27 @@
+from __future__ import absolute_import
+
 import sys
 
-import django
-from django.http import (HttpResponse, Http404, HttpResponseNotAllowed, HttpResponseServerError)
-from django.views.debug import ExceptionReporter
-from django.views.decorators.vary import vary_on_headers
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.db.models.query import QuerySet
+from django.http import (Http404, HttpResponse, HttpResponseNotAllowed,
+                         HttpResponseServerError)
+from django.views.debug import ExceptionReporter
+from django.views.decorators.vary import vary_on_headers
+
+from .authentication import NoAuthentication
+from .doc import HandlerMethod
+from .emitters import Emitter
+from .handler import typemapper
+from .utils import (FormValidationError, HttpStatusCode, MimerDataException,
+                    coerce_put_post, format_error, rc, translate_mime)
 
 try:
     import mimeparse
 except ImportError:
     mimeparse = None
 
-from emitters import Emitter
-from handler import typemapper
-from doc import HandlerMethod
-from authentication import NoAuthentication
-from utils import coerce_put_post, FormValidationError, HttpStatusCode
-from utils import rc, format_error, translate_mime, MimerDataException
 
 CHALLENGE = object()
 
@@ -186,7 +189,7 @@ class Resource(object):
 
         try:
             result = meth(request, *args, **kwargs)
-        except Exception, e:
+        except Exception as e:
             result = self.error_handler(e, request, meth, em_format)
 
         try:
@@ -236,7 +239,7 @@ class Resource(object):
             resp.streaming = self.stream
 
             return resp
-        except HttpStatusCode, e:
+        except HttpStatusCode as e:
             return e.response
 
     @staticmethod

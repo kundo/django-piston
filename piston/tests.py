@@ -1,18 +1,19 @@
-# Django imports
+from __future__ import absolute_import
+
 import django
-from django.core import mail
-from django.contrib.auth.models import User
 from django.conf import settings
-from django.template import loader, TemplateDoesNotExist
+from django.contrib.auth.models import User
+from django.core import mail
 from django.http import HttpRequest, HttpResponse
+from django.template import TemplateDoesNotExist, loader
 from django.utils import simplejson
 
-# Piston imports
-from test import TestCase
-from models import Consumer
-from handler import BaseHandler
-from utils import rc
-from resource import Resource
+from .handler import BaseHandler
+from .models import Consumer
+from .resource import Resource
+from .test import TestCase
+from .utils import rc
+
 
 class ConsumerTest(TestCase):
     fixtures = ['models.json']
@@ -75,13 +76,13 @@ class ConsumerTest(TestCase):
 
 class CustomResponseWithStatusCodeTest(TestCase):
      """
-     Test returning content to be formatted and a custom response code from a 
-     handler method. In this case we're returning 201 (created) and a dictionary 
-     of data. This data will be formatted as json. 
+     Test returning content to be formatted and a custom response code from a
+     handler method. In this case we're returning 201 (created) and a dictionary
+     of data. This data will be formatted as json.
      """
 
      def test_reponse_with_data_and_status_code(self):
-         response_data = dict(complex_response=dict(something='good', 
+         response_data = dict(complex_response=dict(something='good',
              something_else='great'))
 
          class MyHandler(BaseHandler):
@@ -104,7 +105,7 @@ class CustomResponseWithStatusCodeTest(TestCase):
          is_string = (not response._base_content_is_iter) if django.VERSION >= (1,4) else response._is_string
          self.assert_(is_string, "Expected response content to be a string")
 
-         # compare the original data dict with the json response 
+         # compare the original data dict with the json response
          # converted to a dict
          self.assertEquals(response_data, simplejson.loads(response.content))
 
@@ -112,7 +113,7 @@ class CustomResponseWithStatusCodeTest(TestCase):
 class ErrorHandlerTest(TestCase):
     def test_customized_error_handler(self):
         """
-        Throw a custom error from a handler method and catch (and format) it 
+        Throw a custom error from a handler method and catch (and format) it
         in an overridden error_handler method on the associated Resource object
         """
         class GoAwayError(Exception):
@@ -122,7 +123,7 @@ class ErrorHandlerTest(TestCase):
 
         class MyHandler(BaseHandler):
             """
-            Handler which raises a custom exception 
+            Handler which raises a custom exception
             """
             allowed_methods = ('GET',)
 
@@ -131,16 +132,16 @@ class ErrorHandlerTest(TestCase):
 
         class MyResource(Resource):
             def error_handler(self, error, request, meth, em_format):
-                # if the exception is our exeption then generate a 
-                # custom response with embedded content that will be 
-                # formatted as json 
+                # if the exception is our exeption then generate a
+                # custom response with embedded content that will be
+                # formatted as json
                 if isinstance(error, GoAwayError):
                     response = rc.FORBIDDEN
                     response.content = dict(error=dict(
-                        name=error.name, 
-                        message="Get out of here and dont come back", 
+                        name=error.name,
+                        message="Get out of here and dont come back",
                         reason=error.reason
-                    ))    
+                    ))
 
                     return response
 
@@ -154,7 +155,7 @@ class ErrorHandlerTest(TestCase):
 
         self.assertEquals(401, response.status_code)
 
-        # verify the content we got back can be converted back to json 
+        # verify the content we got back can be converted back to json
         # and examine the dictionary keys all exist as expected
         response_data = simplejson.loads(response.content)
         self.assertTrue('error' in response_data)
@@ -164,7 +165,7 @@ class ErrorHandlerTest(TestCase):
 
     def test_type_error(self):
         """
-        Verify that type errors thrown from a handler method result in a valid 
+        Verify that type errors thrown from a handler method result in a valid
         HttpResonse object being returned from the error_handler method
         """
         class MyHandler(BaseHandler):
@@ -175,7 +176,7 @@ class ErrorHandlerTest(TestCase):
         request.method = 'GET'
         response = Resource(MyHandler)(request)
 
-        self.assertTrue(isinstance(response, HttpResponse), "Expected a response, not: %s" 
+        self.assertTrue(isinstance(response, HttpResponse), "Expected a response, not: %s"
             % response)
 
 
@@ -196,5 +197,5 @@ class ErrorHandlerTest(TestCase):
         request.method = 'GET'
         response = resource(request)
 
-        self.assertTrue(isinstance(response, HttpResponse), "Expected a response, not: %s" 
+        self.assertTrue(isinstance(response, HttpResponse), "Expected a response, not: %s"
             % response)
