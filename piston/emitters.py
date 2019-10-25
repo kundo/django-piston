@@ -184,7 +184,7 @@ class Emitter(object):
 
                     # sets can be negated.
                     for exclude in exclude_fields:
-                        if isinstance(exclude, six.text_types):
+                        if isinstance(exclude, six.string_types):
                             get_fields.discard(exclude)
 
                         elif isinstance(exclude, re._pattern_type):
@@ -374,7 +374,7 @@ class XMLEmitter(Emitter):
             xml.characters(force_text(data))
 
     def render(self, request):
-        stream = StringIO.StringIO()
+        stream = StringIO()
 
         xml = SimplerXMLGenerator(stream, "utf-8")
         xml.startDocument()
