@@ -1,4 +1,6 @@
 *.pyc
+.coverage
+.mypy_cache/
 .python-version
 .tox/
 django_piston.egg-info/
