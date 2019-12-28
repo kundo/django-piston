@@ -405,7 +405,7 @@ class JSONEmitter(Emitter):
         return seria
 
 Emitter.register('json', JSONEmitter, 'application/json; charset=utf-8')
-Mimer.register(json.loads, ('application/json',))
+Mimer.register(lambda body: json.loads(body.decode("utf-8")), ('application/json',))
 
 class YAMLEmitter(Emitter):
     """
