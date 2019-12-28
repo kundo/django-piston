@@ -19,7 +19,7 @@ class HandlerMetaClass(type):
         new_cls = type.__new__(cls, name, bases, attrs)
 
         def already_registered(model, anon):
-            for k, (m, a) in typemapper.iteritems():
+            for k, (m, a) in typemapper.items():
                 if model == m and anon == a:
                     return k
 
@@ -130,8 +130,8 @@ class BaseHandler(object):
             return rc.BAD_REQUEST
 
         attrs = self.flatten_dict(request.data)
-        for k,v in attrs.iteritems():
-            setattr( inst, k, v )
+        for k, v in attrs.items():
+            setattr(inst, k, v)
 
         inst.save()
         return rc.ALL_OK

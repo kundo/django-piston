@@ -282,7 +282,7 @@ class OAuthAuthentication(object):
         response.status_code = 401
         realm = 'API'
 
-        for k, v in self.builder(realm=realm).iteritems():
+        for k, v in self.builder(realm=realm).items():
             response[k] = v
 
         tmpl = loader.render_to_string('oauth/challenge.html',
