@@ -7,6 +7,7 @@ from django.core.mail import EmailMessage
 from django.db.models.query import QuerySet
 from django.http import (Http404, HttpResponse, HttpResponseNotAllowed,
                          HttpResponseServerError)
+from django.utils import six
 from django.views.debug import ExceptionReporter
 from django.views.decorators.vary import vary_on_headers
 
@@ -95,7 +96,7 @@ class Resource(object):
         `Resource` subclass.
         """
         resp = rc.BAD_REQUEST
-        resp.write(u' ' + unicode(e.form.errors))
+        resp.write(u' ' + six.text_type(e.form.errors))
         return resp
 
     @property
@@ -247,7 +248,7 @@ class Resource(object):
         if not isinstance(result, HttpResponse):
             return False
 
-        if hasattr(result, "content") and isinstance(result.content, basestring):
+        if hasattr(result, "content") and isinstance(result.content, (six.text_type, six.binary_type)):
             return False
 
         return True
