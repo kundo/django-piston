@@ -2,12 +2,12 @@ from __future__ import absolute_import
 
 import sys
 
+import six
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.db.models.query import QuerySet
 from django.http import (Http404, HttpResponse, HttpResponseNotAllowed,
                          HttpResponseServerError)
-from django.utils import six
 from django.views.debug import ExceptionReporter
 from django.views.decorators.vary import vary_on_headers
 

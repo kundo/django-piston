@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import AnonymousUser, User
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext, loader
 from django.urls import get_callable
 
@@ -169,10 +169,8 @@ def oauth_auth_view(request, token, callback, params):
     form = forms.OAuthAuthenticationForm(initial={
         'oauth_token': token.key,
         'oauth_callback': token.get_callback_url() or callback,
-      })
-
-    return render_to_response('piston/authorize_token.html',
-            { 'form': form }, RequestContext(request))
+    })
+    return render('piston/authorize_token.html', {'form': form}, RequestContext(request))
 
 @login_required
 def oauth_user_auth(request):

@@ -14,7 +14,6 @@ from django.db.models.query import QuerySet
 from django.http import HttpResponse
 from django.urls import NoReverseMatch, reverse
 from django.utils.encoding import force_text
-from django.utils.six import StringIO
 from django.utils.xmlutils import SimplerXMLGenerator
 
 from .utils import HttpStatusCode, Mimer
@@ -374,7 +373,7 @@ class XMLEmitter(Emitter):
             xml.characters(force_text(data))
 
     def render(self, request):
-        stream = StringIO()
+        stream = six.StringIO()
 
         xml = SimplerXMLGenerator(stream, "utf-8")
         xml.startDocument()
