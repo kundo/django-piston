@@ -4,6 +4,7 @@ import warnings
 
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from six import with_metaclass
 
 from .utils import rc
 
@@ -19,7 +20,7 @@ class HandlerMetaClass(type):
         new_cls = type.__new__(cls, name, bases, attrs)
 
         def already_registered(model, anon):
-            for k, (m, a) in typemapper.iteritems():
+            for k, (m, a) in typemapper.items():
                 if model == m and anon == a:
                     return k
 
@@ -38,7 +39,8 @@ class HandlerMetaClass(type):
 
         return new_cls
 
-class BaseHandler(object):
+
+class BaseHandler(with_metaclass(HandlerMetaClass, object)):
     """
     Basehandler that gives you CRUD for free.
     You are supposed to subclass this for specific
@@ -48,7 +50,6 @@ class BaseHandler(object):
     receive a request as the first argument from the
     resource. Use this for checking `request.user`, etc.
     """
-    __metaclass__ = HandlerMetaClass
 
     allowed_methods = ('GET', 'POST', 'PUT', 'DELETE')
     anonymous = is_anonymous = False
@@ -130,8 +131,8 @@ class BaseHandler(object):
             return rc.BAD_REQUEST
 
         attrs = self.flatten_dict(request.data)
-        for k,v in attrs.iteritems():
-            setattr( inst, k, v )
+        for k, v in attrs.items():
+            setattr(inst, k, v)
 
         inst.save()
         return rc.ALL_OK

@@ -2,7 +2,6 @@ from __future__ import absolute_import, print_function
 
 import time
 
-import django
 from django import get_version as django_version
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -50,43 +49,11 @@ class rc_factory(object):
         with 0.2, which is important.
         """
         try:
-            (r, c) = self.CODES.get(attr)
-        except TypeError:
+            (r, c) = self.CODES[attr]
+        except (TypeError, IndexError):
             raise AttributeError(attr)
+        return HttpResponse(r, content_type='text/plain', status=c)
 
-        if django.VERSION < (1, 5):
-            class HttpResponseWrapper(HttpResponse):
-                """
-                Wrap HttpResponse and make sure that the internal
-                _is_string/_base_content_is_iter flag is updated when the
-                _set_content method (via the content property) is called
-                """
-                def _set_content(self, content):
-                    """
-                    Set the _container and _is_string /
-                    _base_content_is_iter properties based on the type of
-                    the value parameter. This logic is in the construtor
-                    for HttpResponse, but doesn't get repeated when
-                    setting HttpResponse.content although this bug report
-                    (feature request) suggests that it should:
-                    http://code.djangoproject.com/ticket/9403
-                    """
-                    is_string = False
-                    if not isinstance(content, basestring) and hasattr(content, '__iter__'):
-                        self._container = content
-                    else:
-                        self._container = [content]
-                        is_string = True
-                    if django.VERSION >= (1, 4):
-                        self._base_content_is_iter = not is_string
-                    else:
-                        self._is_string = is_string
-
-                content = property(HttpResponse._get_content, _set_content)
-        else:
-            HttpResponseWrapper = HttpResponse
-
-        return HttpResponseWrapper(r, content_type='text/plain', status=c)
 
 rc = rc_factory()
 
@@ -228,7 +195,7 @@ class Mimer(object):
         Gets a function ref to deserialize content
         for a certain mimetype.
         """
-        for loadee, mimes in Mimer.TYPES.iteritems():
+        for loadee, mimes in Mimer.TYPES.items():
             for mime in mimes:
                 if ctype.startswith(mime):
                     return loadee

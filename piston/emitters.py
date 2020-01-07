@@ -14,7 +14,6 @@ from django.db.models.query import QuerySet
 from django.http import HttpResponse
 from django.urls import NoReverseMatch, reverse
 from django.utils.encoding import force_text
-from django.utils.six import StringIO
 from django.utils.xmlutils import SimplerXMLGenerator
 
 from .utils import HttpStatusCode, Mimer
@@ -301,14 +300,14 @@ class Emitter(object):
             """
             Dictionaries.
             """
-            return dict([(k, _any(v, fields)) for k, v in data.iteritems()])
+            return dict([(k, _any(v, fields)) for k, v in data.items()])
 
         # Kickstart the seralizin'.
         self.stack = []
         return _any(self.data, self.fields)
 
     def in_typemapper(self, model, anonymous):
-        for klass, (km, is_anon) in self.typemapper.iteritems():
+        for klass, (km, is_anon) in self.typemapper.items():
             if model is km and is_anon is anonymous:
                 return klass
 
@@ -366,7 +365,7 @@ class XMLEmitter(Emitter):
                 self._to_xml(xml, item)
                 xml.endElement("resource")
         elif isinstance(data, dict):
-            for key, value in data.iteritems():
+            for key, value in data.items():
                 xml.startElement(key, {})
                 self._to_xml(xml, value)
                 xml.endElement(key)
@@ -374,7 +373,7 @@ class XMLEmitter(Emitter):
             xml.characters(force_text(data))
 
     def render(self, request):
-        stream = StringIO()
+        stream = six.StringIO()
 
         xml = SimplerXMLGenerator(stream, "utf-8")
         xml.startDocument()
@@ -405,7 +404,7 @@ class JSONEmitter(Emitter):
         return seria
 
 Emitter.register('json', JSONEmitter, 'application/json; charset=utf-8')
-Mimer.register(json.loads, ('application/json',))
+Mimer.register(lambda body: json.loads(body.decode("utf-8")), ('application/json',))
 
 class YAMLEmitter(Emitter):
     """
